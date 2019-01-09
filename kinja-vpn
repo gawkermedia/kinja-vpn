@@ -1,0 +1,57 @@
+#!/bin/bash
+
+# Read password from OSX keychain
+function vpn_password {
+  security 2>&1 >/dev/null find-generic-password -ga kinja-vpn \
+  | ruby -e 'print $1 if STDIN.gets =~ /^password: "(.*)"$/'
+}
+
+function vpnf {
+  local VPN_HOST=${VPN_HOST:-"vpn-aws.kinja-ops.com"}
+  local OPENCONNECT=$(pidof "openconnect.*${VPN_HOST}")
+  local VPN_USER=${VPN_USER:-"$USER"}
+
+  case "$1" in
+    start)
+      if [ -z "$OPENCONNECT" ] ; then
+        echo "Connecting to VPN ($VPN_HOST) as $VPN_USER..."
+        echo $(vpn_password) | sudo openconnect --no-dtls \
+          --background -u ${VPN_USER} --passwd-on-stdin ${VPN_HOST}
+        echo "Done"
+      fi
+      ;;
+    stop)
+      if [ -n "$OPENCONNECT" ] ; then
+        echo "Closing VPN connection ($VPN_HOST)..."
+        sudo kill -SIGINT ${OPENCONNECT}
+        echo "Done"
+      fi
+      ;;
+    restart)
+      vpnf stop
+      sleep 1
+      vpnf start
+      ;;
+    status)
+      if [ "x$OPENCONNECT" == "x" ]; then
+        echo "$VPN_HOST VPN is not running."
+        return 1
+      else
+        echo "$VPN_HOST VPN is running. PID: $OPENCONNECT"
+      fi
+      ;;
+    *)
+      echo "Usage: $0 {start|stop|status|restart}"
+      return 1
+  esac
+}
+
+function pidof {
+  COMMAND="$1"
+  PID=$(ps -A -o pid,command | grep $COMMAND | grep -v grep | awk '{print $1}')
+  if [ -n "$PID" ]; then
+    echo "$PID"
+  fi
+}
+
+vpnf $@
