@@ -1,4 +1,5 @@
 #!/bin/bash
+# vim: set et :
 
 # Read password from OSX keychain
 function vpn_password {
@@ -12,6 +13,10 @@ function vpnf {
   local VPN_USER=${VPN_USER:-"$USER"}
 
   case "$1" in
+    create-password)
+      echo "Set password for kinja-vpn"
+      security add-generic-password -a kinja-vpn -s kinja-vpn -w
+      ;;
     start)
       if [ -z "$OPENCONNECT" ] ; then
         echo "Connecting to VPN ($VPN_HOST) as $VPN_USER..."
