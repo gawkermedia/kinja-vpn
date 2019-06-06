@@ -14,8 +14,13 @@ function vpnf {
 
   case "$1" in
     create-password)
-      echo "Set password for kinja-vpn"
-      security add-generic-password -a kinja-vpn -s kinja-vpn -w
+      PASS=$(vpn_password)
+      if [[ -z "$PASS" ]]; then
+        echo "Set password for kinja-vpn"
+        security add-generic-password -a kinja-vpn -s kinja-vpn -w
+      else
+        echo "Password already exists for account kinja-vpn"
+      fi
       ;;
     start)
       if [ -z "$OPENCONNECT" ] ; then
