@@ -25,7 +25,7 @@ function vpnf {
     start)
       if [ -z "$OPENCONNECT" ] ; then
         echo "Connecting to VPN ($VPN_HOST) as $VPN_USER..."
-        echo $(vpn_password) | sudo openconnect --no-dtls \
+        echo $(vpn_password) | sudo openconnect \
           --background -u ${VPN_USER} --passwd-on-stdin ${VPN_HOST}
         echo "Done"
       fi
